@@ -1,4 +1,4 @@
-# comos-mongodb
+# cosmos-mongodb
 ./create_cosmos_env.sh dev
 ./create_cosmos_env.sh stage
 ./create_cosmos_env.sh prod
@@ -137,3 +137,23 @@ az role assignment delete \
 
 ## To connect, your connection string includes:
 mongodb://<account>.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@<account>@
+
+## Manually delete records (e.g., older than 7 days)
+db.collection.deleteMany({
+  createdAt: { $lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+});
+
+## Later, reduce the TTL (e.g., to 48 hours = 172800 seconds)
+db.runCommand({
+  collMod: "collection",
+  index: {
+    keyPattern: { createdAt: 1 },
+    expireAfterSeconds: 172800
+  }
+})
+
+## Add createdAt to existing documents:
+db.embeddings.updateMany(
+  { createdAt: { $exists: false } },
+  { $set: { createdAt: new Date() } }
+);
