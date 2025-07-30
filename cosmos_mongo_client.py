@@ -126,6 +126,20 @@ class CosmosMongoClient:
             print("Index script executed successfully.")
         except Exception as e:
             raise RuntimeError(f"Failed to execute index script: {e}")
+    def list_indexes_for_collection(self, collection_name):
+        if not self.db:
+            raise RuntimeError("MongoDB connection is not established.")
+
+        collection = self.db[collection_name]
+        try:
+            indexes = list(collection.list_indexes())
+            print(f"Indexes for collection '{collection_name}':")
+            for index in indexes:
+                print(index)
+            return indexes
+        except Exception as e:
+            raise RuntimeError(f"Failed to list indexes for '{collection_name}': {e}")
+
 def main():
 client = CosmosMongoClient(
     jump_host='jump.example.com',
@@ -156,7 +170,7 @@ try:
     result = client.aggregate(pipeline)
     print(result)
    client.apply_index_script_file("indexes.py")
-
+   client.list_indexes_for_collection("orders")
 finally:
     client.close()
 
